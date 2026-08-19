@@ -1,9 +1,9 @@
 import argparse
 import sys
-import requests
-
+from groq import Groq
 import chromadb
 from sentence_transformers import SentenceTransformer
+from openai import OpenAI
 
 import config
 
@@ -204,48 +204,39 @@ def build_context(hits):
 
 
 # =========================================================
-# OLLAMA
+# GROQ
 # =========================================================
 
-def ask_ollama(prompt):
+GROQ_MODEL = "openai/gpt-oss-20b"
 
-    payload = {
-        "model": OLLAMA_MODEL,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        "stream": False,
-        "options": {
-            "temperature": 0,
-        },
-    }
+groq_client = Groq(
+    api_key=config.GROQ_API_KEY
+)
+
+
+def ask_llm(prompt):
 
     try:
-
-        response = requests.post(
-            OLLAMA_URL,
-            json=payload,
-            timeout=120,
+        response = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            temperature=0,
+            max_completion_tokens=1024,
         )
 
-        response.raise_for_status()
-
-        data = response.json()
-
-        return data["message"]["content"].strip()
+        return response.choices[0].message.content.strip()
 
     except Exception as exc:
-
         print(
-            f"\nOllama error: {exc}",
+            f"\nGroq error: {exc}",
             file=sys.stderr,
         )
-
         return None
-
 
 # =========================================================
 # ANSWERABILITY CHECK
@@ -279,7 +270,7 @@ Rules:
 Answer:
 """
 
-    result = ask_ollama(prompt)
+    result = ask_llm(prompt)
 
     if result is None:
         return False
@@ -329,7 +320,7 @@ Rules:
 Answer:
 """
 
-    answer = ask_ollama(prompt)
+    answer = ask_llm(prompt)
 
     if not answer:
         return REFUSAL_MESSAGE
