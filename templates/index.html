@@ -1,359 +1,2471 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Hypertension AI Assistant</title>
+<title>BP Control AI | Hypertension Assistant</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<style>
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f7fb;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+:root{
+  --blue:#0757a0;
+  --blue2:#126fd0;
+  --cyan:#2d8ff0;
+  --ink:#103c76;
+  --muted:#6884a4;
+  --line:#d7e8f8;
+  --soft:#eef7ff;
+  --white:#fff;
+}
 
-        .chat-container {
-            width: 90%;
-            max-width: 900px;
-            height: 90vh;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
-        .header {
-            background: #1769aa;
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
+html,
+body{
+  height:100%;
+}
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--ink);
+  background:linear-gradient(
+    135deg,
+    #e9f6ff 0%,
+    #f8fcff 48%,
+    #e5f3ff 100%
+  );
+  overflow:hidden;
+}
 
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
+body:before,
+body:after{
+  content:"";
+  position:fixed;
+  border-radius:50%;
+  pointer-events:none;
+}
 
-        .messages {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-        }
+body:before{
+  width:420px;
+  height:420px;
+  left:-180px;
+  bottom:-180px;
+  background:rgba(55,155,235,.18);
+}
 
-        .message {
-            margin-bottom: 20px;
-            display: flex;
-        }
+body:after{
+  width:360px;
+  height:360px;
+  right:-150px;
+  top:-150px;
+  background:rgba(105,190,255,.13);
+}
 
-        .message.user {
-            justify-content: flex-end;
-        }
 
-        .message.bot {
-            justify-content: flex-start;
-        }
+/* =========================================================
+   APP
+========================================================= */
 
-        .bubble {
-            max-width: 75%;
-            padding: 14px 18px;
-            border-radius: 15px;
-            line-height: 1.5;
-            font-size: 15px;
-        }
+.app{
+  width:96%;
+  max-width:1450px;
+  height:94vh;
+  margin:3vh auto;
+  display:flex;
+  overflow:hidden;
+  background:rgba(255,255,255,.88);
+  border:1px solid #d8eafa;
+  border-radius:24px;
+  box-shadow:0 24px 70px rgba(22,91,145,.16);
+  backdrop-filter:blur(10px);
+}
 
-        .user .bubble {
-            background: #1769aa;
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
 
-        .bot .bubble {
-            background: #eef3f8;
-            color: #222;
-            border-bottom-left-radius: 4px;
-        }
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
-        .input-area {
-            display: flex;
-            gap: 10px;
-            padding: 18px;
-            border-top: 1px solid #ddd;
-        }
+.sidebar{
+  width:270px;
+  flex-shrink:0;
+  padding:25px 23px 22px;
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(
+    180deg,
+    #f4faff 0%,
+    #e9f6ff 58%,
+    #cfeaff 100%
+  );
+  border-right:1px solid #cfe4f7;
+  position:relative;
+  overflow:hidden;
+}
 
-        #question {
-            flex: 1;
-            padding: 14px 16px;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            font-size: 15px;
-            outline: none;
-        }
+.sidebar:after{
+  content:"";
+  position:absolute;
+  width:280px;
+  height:180px;
+  left:-70px;
+  bottom:-80px;
+  border-radius:50%;
+  background:rgba(39,142,224,.22);
+  box-shadow:
+    90px -25px 0 rgba(80,177,244,.12),
+    170px 25px 0 rgba(18,111,208,.12);
+}
 
-        #question:focus {
-            border-color: #1769aa;
-        }
 
-        #sendBtn {
-            padding: 0 25px;
-            border: none;
-            border-radius: 12px;
-            background: #1769aa;
-            color: white;
-            font-size: 15px;
-            cursor: pointer;
-        }
+/* =========================================================
+   BRAND
+========================================================= */
 
-        #sendBtn:hover {
-            background: #125789;
-        }
+.brand{
+  position:relative;
+  z-index:1;
+  text-align:center;
+  padding:2px 0 25px;
+}
 
-        #sendBtn:disabled {
-            background: #999;
-            cursor: not-allowed;
-        }
+.brand-logo{
+  width:125px;
+  height:125px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto 8px;
+  filter:drop-shadow(
+    0 8px 14px rgba(7,87,160,.12)
+  );
+}
 
-        .typing {
-            font-style: italic;
-            color: #777;
-        }
+.brand-name{
+  font-size:25px;
+  font-weight:800;
+  letter-spacing:.4px;
+  color:#0757a0;
+}
 
-        .sources {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #666;
-        }
+.brand-sub{
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:#2d74b2;
+  margin-top:3px;
+}
 
-        .source-item {
-            margin-top: 5px;
-        }
 
-        @media (max-width: 600px) {
+/* =========================================================
+   NEW CHAT
+========================================================= */
 
-            .chat-container {
-                width: 100%;
-                height: 100vh;
-                border-radius: 0;
-            }
+.new-chat{
+  position:relative;
+  z-index:1;
+  width:100%;
+  height:64px;
+  border:0;
+  border-radius:15px;
+  background:linear-gradient(
+    135deg,
+    #1169d6,
+    #0b58c8
+  );
+  color:white;
+  font-size:18px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 10px 22px rgba(8,89,188,.25);
+  transition:.2s;
+}
 
-            .bubble {
-                max-width: 85%;
-            }
-        }
-    </style>
+.new-chat:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 27px rgba(8,89,188,.31);
+}
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+.history-title{
+  position:relative;
+  z-index:1;
+  margin:27px 2px 9px;
+  padding-bottom:9px;
+  border-bottom:1px solid #c5def4;
+  font-size:17px;
+  font-weight:700;
+  color:#173f78;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.history-title:after{
+  content:'⌄';
+  font-size:22px;
+  color:#0757a0;
+}
+
+.chat-history{
+  position:relative;
+  z-index:1;
+  flex:1;
+  overflow-y:auto;
+  padding-right:2px;
+}
+
+.chat-history::-webkit-scrollbar{
+  width:5px;
+}
+
+.chat-history::-webkit-scrollbar-thumb{
+  background:#afd2ef;
+  border-radius:8px;
+}
+
+.history-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:11px 10px;
+  margin-bottom:4px;
+  border-radius:10px;
+  color:#4d6b89;
+  font-size:13px;
+  cursor:pointer;
+  white-space:nowrap;
+  overflow:hidden;
+}
+
+.history-item:hover{
+  background:#dff0ff;
+  color:#0757a0;
+}
+
+.history-item.active{
+  background:#d7ecff;
+  color:#0757a0;
+  font-weight:700;
+  box-shadow:inset 3px 0 #0b72c9;
+}
+
+.history-title-text{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.delete-chat{
+  width:24px;
+  height:24px;
+  flex-shrink:0;
+  border:0;
+  border-radius:6px;
+  background:transparent;
+  color:#8aa5bd;
+  font-size:18px;
+  cursor:pointer;
+  opacity:0;
+}
+
+.history-item:hover .delete-chat{
+  opacity:1;
+}
+
+.delete-chat:hover{
+  background:#f1dede;
+  color:#c0392b;
+}
+
+
+/* =========================================================
+   CREDITS
+========================================================= */
+
+.credits-section{
+  position:relative;
+  z-index:1;
+  margin-top:16px;
+  padding-top:15px;
+  border-top:1px solid #bcdaf3;
+}
+
+.credits-btn{
+  width:100%;
+  height:54px;
+  border:1px solid #78aef0;
+  border-radius:14px;
+  background:linear-gradient(
+    135deg,
+    #1266d3,
+    #0b58c8
+  );
+  color:#fff;
+  font-size:17px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 9px 20px rgba(7,87,160,.22);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:11px;
+  transition:.2s;
+}
+
+.credits-btn:hover{
+  transform:translateY(-2px);
+}
+
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+.chat-container{
+  position:relative;
+  flex:1;
+  min-width:0;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:linear-gradient(
+    180deg,
+    #fafdff 0%,
+    #eef7ff 100%
+  );
+}
+
+.chat-container:before{
+  content:"";
+  position:absolute;
+  width:310px;
+  height:310px;
+  right:-80px;
+  top:-100px;
+  border-radius:50%;
+  border:3px solid rgba(101,171,238,.13);
+  box-shadow:
+    0 0 0 25px rgba(101,171,238,.04),
+    0 0 0 50px rgba(101,171,238,.025);
+  pointer-events:none;
+}
+
+.chat-container:after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-70px;
+  height:150px;
+  background:
+    radial-gradient(
+      ellipse at 25% 40%,
+      rgba(48,148,235,.14),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 70% 50%,
+      rgba(120,198,255,.13),
+      transparent 62%
+    );
+  pointer-events:none;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:22px 28px 10px;
+  min-height:72px;
+  position:relative;
+  z-index:2;
+}
+
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.messages{
+  position:relative;
+  z-index:1;
+  flex:1;
+  overflow-y:auto;
+  padding:35px 9% 20px;
+  background:transparent;
+}
+
+.messages::-webkit-scrollbar{
+  width:6px;
+}
+
+.messages::-webkit-scrollbar-thumb{
+  background:#bdd9ef;
+  border-radius:10px;
+}
+
+.message{
+  margin-bottom:21px;
+  display:flex;
+}
+
+.message.user{
+  justify-content:flex-end;
+}
+
+.message.bot{
+  justify-content:flex-start;
+}
+
+.bubble{
+  max-width:75%;
+  padding:15px 19px;
+  border-radius:16px;
+  line-height:1.6;
+  font-size:15px;
+  box-shadow:0 5px 18px rgba(30,85,125,.07);
+}
+
+.user .bubble{
+  color:#fff;
+  background:linear-gradient(
+    135deg,
+    #0757a0,
+    #168bea
+  );
+  border-bottom-right-radius:4px;
+}
+
+.bot .bubble{
+  color:#294967;
+  background:#fff;
+  border:1px solid #dcecf9;
+  border-bottom-left-radius:4px;
+}
+
+
+/* =========================================================
+   WELCOME
+========================================================= */
+
+.welcome{
+  max-width:800px;
+  margin:15px auto 0;
+  text-align:left;
+}
+
+.welcome-title{
+  font-size:52px;
+  line-height:1.05;
+  color:#0a4387;
+  letter-spacing:-1.5px;
+  margin-bottom:17px;
+}
+
+.welcome-sub{
+  font-size:22px;
+  line-height:1.55;
+  color:#143f76;
+  max-width:650px;
+  margin-bottom:42px;
+}
+
+.try-label{
+  font-size:17px;
+  font-weight:700;
+  color:#0d68d5;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-bottom:16px;
+}
+
+.try-label:after{
+  content:"";
+  height:2px;
+  flex:1;
+  background:linear-gradient(
+    90deg,
+    #8fc9ff,
+    transparent
+  );
+  max-width:260px;
+}
+
+.suggestion-list{
+  display:grid;
+  gap:14px;
+  max-width:700px;
+}
+
+.suggestion{
+  width:100%;
+  border:1px solid #cfe5fb;
+  background:rgba(255,255,255,.92);
+  border-radius:16px;
+  padding:17px 20px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  text-align:left;
+  color:#0b4b94;
+  font-size:18px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 7px 20px rgba(20,92,150,.08);
+  transition:.2s;
+}
+
+.suggestion:hover{
+  transform:translateY(-2px);
+}
+
+.suggestion-icon{
+  width:50px;
+  height:50px;
+  flex:0 0 50px;
+  border-radius:50%;
+  background:linear-gradient(
+    135deg,
+    #dff0ff,
+    #c9e4ff
+  );
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:27px;
+}
+
+.suggestion-arrow{
+  margin-left:auto;
+  font-size:29px;
+  color:#0a5bb8;
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.input-area{
+  position:relative;
+  z-index:3;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:14px 8% 10px;
+  background:transparent;
+}
+
+#question{
+  flex:1;
+  height:68px;
+  padding:0 25px;
+  border:1px solid #b9d8f5;
+  border-radius:18px;
+  outline:none;
+  font-size:17px;
+  color:#173f78;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 8px 24px rgba(25,96,150,.09);
+}
+
+#question::placeholder{
+  color:#7f98b3;
+}
+
+#question:focus{
+  border-color:#5ea9ee;
+  box-shadow:
+    0 0 0 4px rgba(62,150,230,.1),
+    0 8px 24px rgba(25,96,150,.09);
+}
+
+
+/* =========================================================
+   SEND
+========================================================= */
+
+#sendBtn{
+  width:58px;
+  height:58px;
+  flex:0 0 58px;
+  border:0;
+  border-radius:50%;
+  background:linear-gradient(
+    135deg,
+    #116bd6,
+    #0757a0
+  );
+  color:white;
+  font-size:0;
+  cursor:pointer;
+  box-shadow:0 9px 19px rgba(7,87,160,.25);
+}
+
+#sendBtn:after{
+  content:'➤';
+  font-size:24px;
+  display:block;
+  transform:rotate(-8deg);
+  margin-left:-2px;
+}
+
+#sendBtn:hover{
+  transform:translateY(-2px);
+}
+
+#sendBtn:disabled{
+  background:#9db4c9;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+
+
+/* =========================================================
+   DISCLAIMER
+========================================================= */
+
+.disclaimer{
+  position:relative;
+  z-index:3;
+  text-align:center;
+  padding:0 20px 14px;
+  color:#0b5bb2;
+  font-size:12px;
+  line-height:1.5;
+}
+
+
+/* =========================================================
+   SOURCES / REFERENCES
+========================================================= */
+
+.sources{
+  margin-top:10px;
+  font-size:13px;
+  color:#55718b;
+  background:#eef7ff!important;
+}
+
+.sources-title{
+  margin-bottom:9px;
+  color:#0b4d91;
+  font-size:13px;
+  font-weight:800;
+}
+
+.source-item{
+  margin-top:7px;
+}
+
+.source-button{
+  width:100%;
+  border:1px solid #cfe5f7;
+  border-radius:10px;
+  padding:10px 12px;
+  background:#fff;
+  color:#0757a0;
+  text-align:left;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.source-button:hover{
+  background:#eaf6ff;
+  border-color:#8fc5ee;
+  transform:translateX(2px);
+}
+
+.typing{
+  font-style:italic;
+  color:#7c8c97;
+}
+
+
+/* =========================================================
+   REFERENCE SIDE PANEL
+========================================================= */
+
+.reference-overlay{
+  position:fixed;
+  inset:0;
+  z-index:200;
+  background:rgba(3,45,84,.28);
+  backdrop-filter:blur(3px);
+  opacity:0;
+  visibility:hidden;
+  transition:.25s ease;
+}
+
+.reference-overlay.open{
+  opacity:1;
+  visibility:visible;
+}
+
+.reference-panel{
+  position:absolute;
+  top:0;
+  right:0;
+  width:min(520px,92vw);
+  height:100%;
+  background:#fff;
+  border-left:1px solid #cfe4f7;
+  box-shadow:-18px 0 50px rgba(5,67,115,.20);
+  transform:translateX(100%);
+  transition:.3s ease;
+  display:flex;
+  flex-direction:column;
+}
+
+.reference-overlay.open .reference-panel{
+  transform:translateX(0);
+}
+
+.reference-header{
+  flex-shrink:0;
+  padding:22px;
+  border-bottom:1px solid #dcecf9;
+  background:linear-gradient(
+    135deg,
+    #f7fcff,
+    #eaf6ff
+  );
+}
+
+.reference-header-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.reference-title{
+  font-size:20px;
+  font-weight:800;
+  color:#0757a0;
+}
+
+.reference-close{
+  width:36px;
+  height:36px;
+  border:0;
+  border-radius:50%;
+  background:#e2f2ff;
+  color:#0757a0;
+  font-size:25px;
+  cursor:pointer;
+}
+
+.reference-close:hover{
+  background:#cfeaff;
+}
+
+.reference-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:14px;
+}
+
+.reference-badge{
+  padding:6px 10px;
+  border-radius:8px;
+  background:#eaf5ff;
+  border:1px solid #cfe5f8;
+  color:#1765a8;
+  font-size:12px;
+  font-weight:700;
+}
+
+.reference-content{
+  flex:1;
+  overflow-y:auto;
+  padding:24px;
+}
+
+.reference-content::-webkit-scrollbar{
+  width:6px;
+}
+
+.reference-content::-webkit-scrollbar-thumb{
+  background:#bdd9ef;
+  border-radius:10px;
+}
+
+.reference-source-name{
+  margin-bottom:18px;
+  padding:12px 14px;
+  border-radius:12px;
+  background:#f1f8ff;
+  border:1px solid #d9ebfa;
+  color:#52718d;
+  font-size:13px;
+  word-break:break-word;
+}
+
+.reference-text-title{
+  margin-bottom:10px;
+  font-size:15px;
+  font-weight:800;
+  color:#0b4d91;
+}
+
+.reference-text{
+  padding:18px;
+  border:1px solid #dcecf8;
+  border-radius:14px;
+  background:#fbfdff;
+  color:#294967;
+  font-size:15px;
+  line-height:1.75;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+
+/* =========================================================
+   CREDITS MODAL
+========================================================= */
+
+.credits-overlay{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(3,45,84,.38);
+  backdrop-filter:blur(6px);
+}
+
+.credits-overlay.open{
+  display:flex;
+}
+
+.credits-modal{
+  width:min(560px,100%);
+  max-height:90vh;
+  overflow-y:auto;
+  position:relative;
+  padding:28px;
+  border:1px solid #b8daf5;
+  border-radius:24px;
+  background:linear-gradient(
+    180deg,
+    #fff,
+    #f3faff
+  );
+  box-shadow:0 30px 80px rgba(3,56,105,.28);
+  color:#073b78;
+}
+
+.credits-close{
+  position:absolute;
+  top:14px;
+  right:16px;
+  width:36px;
+  height:36px;
+  border:0;
+  border-radius:50%;
+  background:#e7f4ff;
+  color:#0757a0;
+  font-size:25px;
+  cursor:pointer;
+}
+
+.credits-brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin:8px 0 20px;
+}
+
+.credits-logo{
+  width:72px;
+  height:72px;
+  object-fit:contain;
+}
+
+.credits-brand-name{
+  font-size:22px;
+  font-weight:800;
+}
+
+.credits-brand-subtitle{
+  margin-top:2px;
+  font-size:11px;
+  letter-spacing:2px;
+  color:#3f82b6;
+  font-weight:700;
+}
+
+.credits-modal h2{
+  text-align:center;
+  font-size:28px;
+  margin-bottom:7px;
+}
+
+.credits-intro{
+  text-align:center;
+  color:#63809a;
+  margin-bottom:18px;
+}
+
+.credits-list{
+  display:grid;
+  gap:9px;
+}
+
+.credit-person{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border:1px solid #cfe5f7;
+  border-radius:13px;
+  background:#fff;
+  font-weight:700;
+  color:#0a4d88;
+}
+
+.credit-avatar{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(
+    135deg,
+    #d8eeff,
+    #edf8ff
+  );
+  color:#0757a0;
+  font-size:11px;
+}
+
+.credit-role{
+  display:block;
+  font-size:12px;
+  color:#2472c4;
+  font-weight:500;
+  margin-top:2px;
+}
+
+.credits-footer{
+  margin:20px -28px -28px;
+  padding:15px;
+  text-align:center;
+  background:#e5f3ff;
+  color:#0757a0;
+  font-weight:700;
+  border-radius:0 0 24px 24px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:900px){
+
+  .sidebar{
+    width:225px;
+  }
+
+  .messages{
+    padding-left:6%;
+    padding-right:6%;
+  }
+
+  .welcome-title{
+    font-size:42px;
+  }
+
+  .welcome-sub{
+    font-size:19px;
+  }
+
+  .input-area{
+    padding-left:5%;
+    padding-right:5%;
+  }
+
+}
+
+@media(max-width:750px){
+
+  body{
+    overflow:auto;
+  }
+
+  .app{
+    width:100%;
+    height:100vh;
+    margin:0;
+    border-radius:0;
+  }
+
+  .sidebar{
+    display:none;
+  }
+
+  .messages{
+    padding:24px 18px 15px;
+  }
+
+  .welcome{
+    margin-top:5px;
+  }
+
+  .welcome-title{
+    font-size:36px;
+  }
+
+  .welcome-sub{
+    font-size:17px;
+    margin-bottom:30px;
+  }
+
+  .suggestion{
+    font-size:15px;
+  }
+
+  .input-area{
+    padding:10px 12px;
+  }
+
+  #question{
+    height:58px;
+    font-size:15px;
+    padding:0 17px;
+  }
+
+  .reference-panel{
+    width:100%;
+  }
+
+  .credits-modal{
+    padding:22px;
+  }
+
+  .credits-footer{
+    margin:20px -22px -22px;
+  }
+
+}
+
+</style>
 </head>
+
 
 <body>
 
-<div class="chat-container">
+<div class="app">
 
-    <div class="header">
-        <h1>Hypertension AI Assistant</h1>
-        <p>Ask questions based on the provided medical documents</p>
+  <aside class="sidebar">
+
+    <div class="brand">
+
+      <img
+        class="brand-logo"
+        src="{{ url_for('static', filename='logo.jpeg') }}"
+        alt="BP Control logo"
+      >
+
+      <div class="brand-name">
+        BP CONTROL
+      </div>
+
+      <div class="brand-sub">
+        HYPERTENSION
+      </div>
+
     </div>
 
-    <div class="messages" id="messages">
 
-        <div class="message bot">
-            <div class="bubble">
-                Hello! 👋<br><br>
-                I am the Hypertension AI Assistant.
-                You can ask me questions about hypertension
-                based on the medical documents.
-            </div>
-        </div>
+    <button
+      class="new-chat"
+      id="newChatBtn"
+      type="button"
+    >
+      💬 &nbsp; New Chat
+    </button>
+
+
+    <div class="history-title">
+      Chat History
+    </div>
+
+
+    <div
+      class="chat-history"
+      id="chatHistory"
+    ></div>
+
+
+    <div class="credits-section">
+
+      <button
+        class="credits-btn"
+        id="creditsBtn"
+        type="button"
+      >
+        <span>👥</span>
+        <span>Credits</span>
+      </button>
 
     </div>
+
+  </aside>
+
+
+  <div class="chat-container">
+
+    <div class="header"></div>
+
+    <div
+      class="messages"
+      id="messages"
+    ></div>
+
 
     <div class="input-area">
 
-        <input
-            type="text"
-            id="question"
-            placeholder="Ask a question about hypertension..."
-            autocomplete="off"
-        >
+      <input
+        type="text"
+        id="question"
+        placeholder="Ask a question about hypertension..."
+        autocomplete="off"
+      >
 
-        <button id="sendBtn">
-            Send
-        </button>
+      <button
+        id="sendBtn"
+        aria-label="Send question"
+        type="button"
+      ></button>
 
     </div>
+
+
+    <div class="disclaimer">
+
+      ⓘ &nbsp;
+
+      <strong>
+        BP Control AI provides information for educational purposes only.
+      </strong>
+
+      <br>
+
+      It does not replace professional medical advice.
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     CREDITS MODAL
+========================================================= -->
+
+<div
+  class="credits-overlay"
+  id="creditsOverlay"
+  aria-hidden="true"
+>
+
+  <div
+    class="credits-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="creditsTitle"
+  >
+
+    <button
+      class="credits-close"
+      id="creditsClose"
+      type="button"
+      aria-label="Close credits"
+    >
+      ×
+    </button>
+
+
+    <div class="credits-brand">
+
+      <img
+        class="credits-logo"
+        src="{{ url_for('static', filename='logo.jpeg') }}"
+        alt="BP Control logo"
+      >
+
+      <div>
+
+        <div class="credits-brand-name">
+          BP CONTROL
+        </div>
+
+        <div class="credits-brand-subtitle">
+          HYPERTENSION
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <h2 id="creditsTitle">
+      Credits
+    </h2>
+
+
+    <p class="credits-intro">
+      This project was developed by the following team.
+    </p>
+
+
+    <div class="credits-list">
+
+      <div class="credit-person">
+        <span class="credit-avatar">SM</span>
+        <span>
+          Uoeel Ayman
+          <span class="credit-role">Developer</span>
+        </span>
+      </div>
+
+      <div class="credit-person">
+        <span class="credit-avatar">MN</span>
+        <span>
+          Taha Al mamoun
+          <span class="credit-role">Developer</span>
+        </span>
+      </div>
+
+      <div class="credit-person">
+        <span class="credit-avatar">MS</span>
+        <span>
+          Shenouda Magdy
+          <span class="credit-role">Developer</span>
+        </span>
+      </div>
+
+      <div class="credit-person">
+        <span class="credit-avatar">MS</span>
+        <span>
+          Beshoy Emad
+          <span class="credit-role">Developer</span>
+        </span>
+      </div>
+
+      <div class="credit-person">
+        <span class="credit-avatar">YM</span>
+        <span>
+          Mohamed Sayed
+          <span class="credit-role">Developer</span>
+        </span>
+      </div>
+
+    </div>
+
+
+    <div class="credits-footer">
+      Thank you for using BP Control AI. 💙
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     REFERENCE PANEL
+========================================================= -->
+
+<div
+  class="reference-overlay"
+  id="referenceOverlay"
+  aria-hidden="true"
+>
+
+  <aside
+    class="reference-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="referenceTitle"
+  >
+
+    <div class="reference-header">
+
+      <div class="reference-header-top">
+
+        <div
+          class="reference-title"
+          id="referenceTitle"
+        >
+          Reference
+        </div>
+
+        <button
+          class="reference-close"
+          id="referenceClose"
+          type="button"
+          aria-label="Close reference"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div
+        class="reference-meta"
+        id="referenceMeta"
+      ></div>
+
+    </div>
+
+
+    <div class="reference-content">
+
+      <div
+        class="reference-source-name"
+        id="referenceSource"
+      ></div>
+
+
+      <div class="reference-text-title">
+        Retrieved content
+      </div>
+
+
+      <div
+        class="reference-text"
+        id="referenceText"
+      ></div>
+
+    </div>
+
+  </aside>
 
 </div>
 
 
 <script>
 
-const questionInput = document.getElementById("question");
-const sendBtn = document.getElementById("sendBtn");
-const messages = document.getElementById("messages");
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const questionInput =
+  document.getElementById("question");
+
+const sendBtn =
+  document.getElementById("sendBtn");
+
+const messages =
+  document.getElementById("messages");
+
+const newChatBtn =
+  document.getElementById("newChatBtn");
+
+const chatHistory =
+  document.getElementById("chatHistory");
+
+const creditsBtn =
+  document.getElementById("creditsBtn");
+
+const creditsOverlay =
+  document.getElementById("creditsOverlay");
+
+const creditsClose =
+  document.getElementById("creditsClose");
 
 
-function addMessage(text, type) {
+/* =========================================================
+   REFERENCE ELEMENTS
+========================================================= */
 
-    const message = document.createElement("div");
+const referenceOverlay =
+  document.getElementById("referenceOverlay");
 
-    message.className = "message " + type;
+const referenceClose =
+  document.getElementById("referenceClose");
 
-    const bubble = document.createElement("div");
+const referenceTitle =
+  document.getElementById("referenceTitle");
 
-    bubble.className = "bubble";
+const referenceMeta =
+  document.getElementById("referenceMeta");
 
-    bubble.innerHTML = text;
+const referenceSource =
+  document.getElementById("referenceSource");
 
-    message.appendChild(bubble);
+const referenceText =
+  document.getElementById("referenceText");
 
-    messages.appendChild(message);
 
-    messages.scrollTop = messages.scrollHeight;
+/* =========================================================
+   CHAT STORAGE
+========================================================= */
+
+let chats = [];
+
+let currentChat = null;
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value){
+
+  if(
+    value === null ||
+    value === undefined
+  ){
+    return "";
+  }
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 }
 
 
-async function sendQuestion() {
+/* =========================================================
+   WELCOME
+========================================================= */
 
-    const question = questionInput.value.trim();
+function showWelcome(){
 
-    if (!question) {
-        return;
+  messages.innerHTML = `
+
+    <div class="welcome" id="welcomeScreen">
+
+      <div class="welcome-title">
+        Hello! 👋
+      </div>
+
+      <div class="welcome-sub">
+
+        I'm
+        <strong>BP Control AI</strong>,
+        your assistant for hypertension-related information.
+
+      </div>
+
+      <div class="try-label">
+        Try asking about:
+      </div>
+
+      <div class="suggestion-list">
+
+        <button
+          class="suggestion"
+          data-question="What is hypertension?"
+          type="button"
+        >
+
+          <span class="suggestion-icon">
+            ❤️
+          </span>
+
+          <span>
+            What is hypertension?
+          </span>
+
+          <span class="suggestion-arrow">
+            ›
+          </span>
+
+        </button>
+
+
+        <button
+          class="suggestion"
+          data-question="What are the causes of high blood pressure?"
+          type="button"
+        >
+
+          <span class="suggestion-icon">
+            🩺
+          </span>
+
+          <span>
+            What are the causes of high blood pressure?
+          </span>
+
+          <span class="suggestion-arrow">
+            ›
+          </span>
+
+        </button>
+
+
+        <button
+          class="suggestion"
+          data-question="What are the treatments for hypertension?"
+          type="button"
+        >
+
+          <span class="suggestion-icon">
+            💊
+          </span>
+
+          <span>
+            What are the treatments for hypertension?
+          </span>
+
+          <span class="suggestion-arrow">
+            ›
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document
+    .querySelectorAll(".suggestion")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        function(){
+
+          questionInput.value =
+            this.dataset.question;
+
+          sendQuestion();
+
+        }
+      );
+
+    });
+
+}
+
+
+/* =========================================================
+   NEW CHAT
+========================================================= */
+
+function createNewChat(){
+
+  const chat = {
+
+    id: Date.now(),
+
+    title: "New Chat",
+
+    messages: []
+
+  };
+
+
+  chats.unshift(chat);
+
+  currentChat = chat;
+
+
+  renderHistory();
+
+  renderChat();
+
+
+  questionInput.focus();
+
+}
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function renderHistory(){
+
+  chatHistory.innerHTML = "";
+
+
+  chats.forEach(chat => {
+
+    const item =
+      document.createElement("div");
+
+    item.className =
+      "history-item";
+
+
+    if(
+      currentChat &&
+      chat.id === currentChat.id
+    ){
+
+      item.classList.add("active");
+
     }
 
-    addMessage(question, "user");
 
-    questionInput.value = "";
+    const title =
+      document.createElement("span");
 
-    sendBtn.disabled = true;
+    title.className =
+      "history-title-text";
 
-    addMessage(
-        '<span class="typing">Thinking...</span>',
-        "bot"
+    title.textContent =
+      chat.title;
+
+    title.title =
+      chat.title;
+
+
+    const deleteBtn =
+      document.createElement("button");
+
+    deleteBtn.className =
+      "delete-chat";
+
+    deleteBtn.innerHTML =
+      "×";
+
+    deleteBtn.title =
+      "Delete chat";
+
+    deleteBtn.type =
+      "button";
+
+
+    deleteBtn.addEventListener(
+      "click",
+      function(event){
+
+        event.stopPropagation();
+
+
+        const chatIndex =
+          chats.findIndex(
+            c => c.id === chat.id
+          );
+
+
+        if(chatIndex !== -1){
+
+          chats.splice(
+            chatIndex,
+            1
+          );
+
+        }
+
+
+        if(
+          currentChat &&
+          currentChat.id === chat.id
+        ){
+
+          if(chats.length > 0){
+
+            currentChat =
+              chats[0];
+
+          }else{
+
+            currentChat =
+              null;
+
+          }
+
+          renderChat();
+
+        }
+
+
+        renderHistory();
+
+      }
     );
 
-    try {
 
-        const response = await fetch("/ask", {
+    item.appendChild(title);
 
-            method: "POST",
+    item.appendChild(deleteBtn);
 
-            headers: {
-                "Content-Type": "application/json"
-            },
 
-            body: JSON.stringify({
-                question: question
-            })
+    item.addEventListener(
+      "click",
+      function(){
+
+        currentChat =
+          chat;
+
+        renderHistory();
+
+        renderChat();
+
+      }
+    );
+
+
+    chatHistory.appendChild(item);
+
+  });
+
+}
+
+
+/* =========================================================
+   RENDER CHAT
+========================================================= */
+
+function renderChat(){
+
+  messages.innerHTML = "";
+
+
+  if(!currentChat){
+
+    showWelcome();
+
+    return;
+
+  }
+
+
+  if(
+    currentChat.messages.length === 0
+  ){
+
+    showWelcome();
+
+    return;
+
+  }
+
+
+  currentChat.messages.forEach(
+    msg => {
+
+      addMessageToScreen(
+        msg.text,
+        msg.type,
+        false
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   ADD MESSAGE
+========================================================= */
+
+function addMessageToScreen(
+  text,
+  type,
+  save = true
+){
+
+  const message =
+    document.createElement("div");
+
+  message.className =
+    "message " + type;
+
+
+  const bubble =
+    document.createElement("div");
+
+  bubble.className =
+    "bubble";
+
+
+  bubble.innerHTML =
+    text;
+
+
+  message.appendChild(bubble);
+
+  messages.appendChild(message);
+
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
+
+  if(
+    save &&
+    currentChat
+  ){
+
+    currentChat.messages.push({
+
+      text:text,
+
+      type:type
+
+    });
+
+  }
+
+}
+
+
+function addMessage(
+  text,
+  type
+){
+
+  addMessageToScreen(
+    text,
+    type,
+    true
+  );
+
+}
+
+
+/* =========================================================
+   REFERENCE PANEL
+========================================================= */
+
+function openReference(source){
+
+  if(!source){
+    return;
+  }
+
+
+  referenceTitle.textContent =
+    "Reference " +
+    (source.id || "");
+
+
+  let metaHTML = "";
+
+
+  if(
+    source.page !== null &&
+    source.page !== undefined &&
+    source.page !== ""
+  ){
+
+    metaHTML += `
+      <span class="reference-badge">
+        📄 Page ${escapeHTML(source.page)}
+      </span>
+    `;
+
+  }
+
+
+  if(source.section){
+
+    metaHTML += `
+      <span class="reference-badge">
+        📑 ${escapeHTML(source.section)}
+      </span>
+    `;
+
+  }
+
+
+  if(source.relevance){
+
+    metaHTML += `
+      <span class="reference-badge">
+        ${escapeHTML(source.relevance)}
+      </span>
+    `;
+
+  }
+
+
+  if(source.score !== undefined){
+
+    metaHTML += `
+      <span class="reference-badge">
+        Score: ${escapeHTML(source.score)}
+      </span>
+    `;
+
+  }
+
+
+  referenceMeta.innerHTML =
+    metaHTML;
+
+
+  if(source.source){
+
+    referenceSource.innerHTML =
+      "<strong>Source:</strong> " +
+      escapeHTML(source.source);
+
+    referenceSource.style.display =
+      "block";
+
+  }else{
+
+    referenceSource.innerHTML =
+      "";
+
+    referenceSource.style.display =
+      "none";
+
+  }
+
+
+  referenceText.textContent =
+    source.text ||
+    "No source text available.";
+
+
+  referenceOverlay.classList.add(
+    "open"
+  );
+
+  referenceOverlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+}
+
+
+function closeReference(){
+
+  referenceOverlay.classList.remove(
+    "open"
+  );
+
+  referenceOverlay.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+}
+
+
+/* =========================================================
+   SEND QUESTION
+========================================================= */
+
+async function sendQuestion(){
+
+  const question =
+    questionInput.value.trim();
+
+
+  if(!question){
+
+    return;
+
+  }
+
+
+  if(!currentChat){
+
+    createNewChat();
+
+  }
+
+
+  if(
+    currentChat.title === "New Chat"
+  ){
+
+    currentChat.title =
+      question.length > 34
+
+        ? question.substring(
+            0,
+            34
+          ) + "..."
+
+        : question;
+
+
+    renderHistory();
+
+  }
+
+
+  addMessage(
+    question,
+    "user"
+  );
+
+
+  questionInput.value = "";
+
+  sendBtn.disabled = true;
+
+
+  addMessage(
+    '<span class="typing">Thinking...</span>',
+    "bot"
+  );
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/ask",
+        {
+
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          body:JSON.stringify({
+
+            question:question
+
+          })
+
+        }
+      );
+
+
+    if(!response.ok){
+
+      throw new Error(
+        "Server returned an error."
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    /* Remove Thinking */
+
+    const botMessages =
+      document.querySelectorAll(
+        ".message.bot"
+      );
+
+
+    const lastBotMessage =
+      botMessages[
+        botMessages.length - 1
+      ];
+
+
+    if(lastBotMessage){
+
+      lastBotMessage.remove();
+
+    }
+
+
+    if(
+      currentChat &&
+      currentChat.messages.length > 0
+    ){
+
+      const lastMessage =
+        currentChat.messages[
+          currentChat.messages.length - 1
+        ];
+
+
+      if(
+        lastMessage.text.includes(
+          "Thinking..."
+        )
+      ){
+
+        currentChat.messages.pop();
+
+      }
+
+    }
+
+
+    /* Answer */
+
+    let answer =
+      data.answer ||
+      "No answer received.";
+
+
+    answer =
+      answer.replace(
+        /\n/g,
+        "<br>"
+      );
+
+
+    addMessage(
+      answer,
+      "bot"
+    );
+
+
+    /* =====================================================
+       REFERENCES
+    ===================================================== */
+
+    if(
+      data.sources &&
+      data.sources.length > 0
+    ){
+
+      const sourceHTML =
+        data.sources
+          .map(
+            (source, index) => `
+
+              <div class="source-item">
+
+                <button
+                  type="button"
+                  class="source-button"
+                  data-source-index="${index}"
+                >
+
+                  📚 Reference ${index + 1}
+
+                  ${
+                    source.page
+                      ? " — Page " +
+                        escapeHTML(source.page)
+                      : ""
+                  }
+
+                  ${
+                    source.section
+                      ? " — " +
+                        escapeHTML(source.section)
+                      : ""
+                  }
+
+                </button>
+
+              </div>
+
+            `
+          )
+          .join("");
+
+
+      const sourceMessage =
+        document.createElement("div");
+
+
+      sourceMessage.className =
+        "message bot";
+
+
+      sourceMessage.innerHTML = `
+
+        <div class="bubble sources">
+
+          <div class="sources-title">
+            📚 References
+          </div>
+
+          ${sourceHTML}
+
+        </div>
+
+      `;
+
+
+      messages.appendChild(
+        sourceMessage
+      );
+
+
+      /* Reference click events */
+
+      sourceMessage
+        .querySelectorAll(".source-button")
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            function(){
+
+              const index =
+                Number(
+                  this.dataset.sourceIndex
+                );
+
+
+              const selectedSource =
+                data.sources[index];
+
+
+              openReference(
+                selectedSource
+              );
+
+            }
+          );
 
         });
 
-        const data = await response.json();
 
-        // Remove "Thinking..."
-        const botMessages =
-            document.querySelectorAll(".message.bot");
-
-        const lastBotMessage =
-            botMessages[botMessages.length - 1];
-
-        lastBotMessage.remove();
-
-
-        let answer = data.answer || "No answer received.";
-
-        answer = answer.replace(/\n/g, "<br>");
-
-
-        addMessage(answer, "bot");
-
-
-        // Display sources if available
-
-        if (data.sources && data.sources.length > 0) {
-
-            const sourceHTML = data.sources
-                .map(source => `
-                    <div class="source-item">
-                        📄 Page ${source.page}
-                        ${source.section
-                            ? "- " + source.section
-                            : ""}
-                    </div>
-                `)
-                .join("");
-
-            const sourceMessage =
-                document.createElement("div");
-
-            sourceMessage.className = "message bot";
-
-            sourceMessage.innerHTML = `
-                <div class="bubble sources">
-                    <strong>Sources:</strong>
-                    ${sourceHTML}
-                </div>
-            `;
-
-            messages.appendChild(sourceMessage);
-
-            messages.scrollTop = messages.scrollHeight;
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        const botMessages =
-            document.querySelectorAll(".message.bot");
-
-        const lastBotMessage =
-            botMessages[botMessages.length - 1];
-
-        lastBotMessage.remove();
-
-        addMessage(
-            "Sorry, something went wrong. Please try again.",
-            "bot"
-        );
+      messages.scrollTop =
+        messages.scrollHeight;
 
     }
 
-    sendBtn.disabled = false;
+  }
 
-    questionInput.focus();
+
+  catch(error){
+
+    console.error(
+      "Error:",
+      error
+    );
+
+
+    const botMessages =
+      document.querySelectorAll(
+        ".message.bot"
+      );
+
+
+    const lastBotMessage =
+      botMessages[
+        botMessages.length - 1
+      ];
+
+
+    if(lastBotMessage){
+
+      lastBotMessage.remove();
+
+    }
+
+
+    if(
+      currentChat &&
+      currentChat.messages.length > 0
+    ){
+
+      const lastMessage =
+        currentChat.messages[
+          currentChat.messages.length - 1
+        ];
+
+
+      if(
+        lastMessage.text.includes(
+          "Thinking..."
+        )
+      ){
+
+        currentChat.messages.pop();
+
+      }
+
+    }
+
+
+    addMessage(
+      "Sorry, something went wrong. Please try again.",
+      "bot"
+    );
+
+  }
+
+
+  sendBtn.disabled = false;
+
+  questionInput.focus();
+
 }
 
 
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+newChatBtn.addEventListener(
+  "click",
+  createNewChat
+);
+
+
 sendBtn.addEventListener(
-    "click",
-    sendQuestion
+  "click",
+  sendQuestion
 );
 
 
 questionInput.addEventListener(
-    "keypress",
-    function(event) {
+  "keypress",
+  function(event){
 
-        if (event.key === "Enter") {
-            sendQuestion();
-        }
+    if(event.key === "Enter"){
+
+      sendQuestion();
 
     }
+
+  }
 );
+
+
+/* =========================================================
+   CREDITS
+========================================================= */
+
+function openCredits(){
+
+  creditsOverlay.classList.add(
+    "open"
+  );
+
+  creditsOverlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+}
+
+
+function closeCredits(){
+
+  creditsOverlay.classList.remove(
+    "open"
+  );
+
+  creditsOverlay.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+}
+
+
+creditsBtn.addEventListener(
+  "click",
+  openCredits
+);
+
+
+creditsClose.addEventListener(
+  "click",
+  closeCredits
+);
+
+
+creditsOverlay.addEventListener(
+  "click",
+  function(event){
+
+    if(
+      event.target === creditsOverlay
+    ){
+
+      closeCredits();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   REFERENCE EVENTS
+========================================================= */
+
+referenceClose.addEventListener(
+  "click",
+  closeReference
+);
+
+
+referenceOverlay.addEventListener(
+  "click",
+  function(event){
+
+    if(
+      event.target === referenceOverlay
+    ){
+
+      closeReference();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  function(event){
+
+    if(event.key === "Escape"){
+
+      closeCredits();
+
+      closeReference();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+createNewChat();
 
 </script>
 

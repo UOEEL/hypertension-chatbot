@@ -57,7 +57,10 @@ def ask():
         print("Retrieval error:", e)
 
         return jsonify({
-            "answer": "Sorry, an error occurred while searching the documents.",
+            "answer": (
+                "Sorry, an error occurred while "
+                "searching the documents."
+            ),
             "sources": []
         })
 
@@ -66,7 +69,16 @@ def ask():
     # FIRST REFUSAL GATE
     # =====================================================
 
-    if not has_enough_information(hits):
+    gate1 = has_enough_information(hits)
+
+    print("========================================")
+    print("QUESTION:", question)
+    print("HITS:", len(hits))
+    print("GATE 1:", gate1)
+
+    if not gate1:
+
+        print("REFUSED BY GATE 1")
 
         return jsonify({
             "answer": (
@@ -89,6 +101,8 @@ def ask():
             hits
         )
 
+        print("GATE 2:", answerable)
+
     except Exception as e:
 
         print("Answerability error:", e)
@@ -97,6 +111,8 @@ def ask():
 
 
     if not answerable:
+
+        print("REFUSED BY GATE 2")
 
         return jsonify({
             "answer": (
@@ -111,6 +127,10 @@ def ask():
     # =====================================================
     # GENERATE ANSWER
     # =====================================================
+
+    print("DEBUG: Reached GENERATE ANSWER")
+    print("DEBUG QUESTION:", question)
+    print("DEBUG HITS:", len(hits))
 
     try:
 

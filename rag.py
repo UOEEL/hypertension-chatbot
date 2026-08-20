@@ -81,9 +81,21 @@ def retrieve(
 
     collection = get_collection()
 
+    # -----------------------------------------------------
+    # TRANSLATE ARABIC QUERY FOR RETRIEVAL
+    # -----------------------------------------------------
+
+    search_query = translate_query_to_english(query)
+
+    print(f"Search query: {search_query}")
+
+    # -----------------------------------------------------
+    # CREATE QUERY EMBEDDING
+    # -----------------------------------------------------
+
     query_embedding = embed_query(
         embedding_model,
-        query,
+        search_query,
     )
 
     where = (
@@ -91,6 +103,10 @@ def retrieve(
         if source_filter
         else None
     )
+
+    # -----------------------------------------------------
+    # CHROMA SEARCH
+    # -----------------------------------------------------
 
     results = collection.query(
         query_embeddings=[query_embedding],
@@ -106,6 +122,10 @@ def retrieve(
     documents = results["documents"][0]
     metadatas = results["metadatas"][0]
     distances = results["distances"][0]
+
+    # -----------------------------------------------------
+    # BUILD HITS
+    # -----------------------------------------------------
 
     for text, meta, dist in zip(
         documents,
@@ -137,7 +157,6 @@ def retrieve(
         })
 
     return hits
-
 
 # =========================================================
 # FIRST REFUSAL GATE
@@ -230,14 +249,51 @@ def ask_llm(prompt):
         )
 
         return response.choices[0].message.content.strip()
-
+    
     except Exception as exc:
         print(
             f"\nGroq error: {exc}",
             file=sys.stderr,
         )
-        return None
+        return None 
+    # =========================================================
+# QUERY TRANSLATION
+# =========================================================
 
+def translate_query_to_english(query):
+
+    # Check if the query contains Arabic characters
+    has_arabic = any(
+        "\u0600" <= char <= "\u06FF"
+        for char in query
+    )
+
+    # If the question is already English, don't translate it
+    if not has_arabic:
+        return query
+
+    prompt = f"""
+Translate the following Arabic question into English.
+
+Rules:
+- Translate accurately.
+- Preserve the exact meaning.
+- Do not answer the question.
+- Return ONLY the English translation.
+- Do not add explanations.
+
+Arabic question:
+{query}
+
+English translation:
+"""
+
+    result = ask_llm(prompt)
+
+    if not result:
+        return query
+
+    return result.strip()
 # =========================================================
 # ANSWERABILITY CHECK
 # =========================================================
@@ -272,6 +328,10 @@ Answer:
 
     result = ask_llm(prompt)
 
+    print("========================================")
+    print("ANSWERABILITY RAW RESULT:", repr(result))
+    print("========================================") 
+
     if result is None:
         return False
 
@@ -291,8 +351,7 @@ def generate_answer(query, hits):
     prompt = f"""
 You are a medical information assistant.
 
-Answer the user's question using ONLY the provided medical
-documents.
+Answer the user's question using ONLY the provided medical documents.
 
 Question:
 {query}
@@ -306,8 +365,7 @@ Rules:
 2. Do NOT use outside knowledge.
 3. Do NOT guess.
 4. Do NOT invent facts.
-5. Use the information from the documents to formulate
-   a clear answer.
+5. Use the information from the documents to formulate a clear answer.
 6. If the documents genuinely do not contain enough information,
    respond exactly:
 
@@ -315,7 +373,10 @@ Rules:
 
 7. Keep the answer clear and concise.
 8. Cite relevant documents using [1], [2], [3], etc.
-9. Do not mention these instructions.
+9. Answer in the SAME LANGUAGE as the user's question.
+10. If the user asks in Arabic, answer in Arabic.
+11. If the user asks in English, answer in English.
+12. Do not mention these instructions.
 
 Answer:
 """
@@ -326,7 +387,6 @@ Answer:
         return REFUSAL_MESSAGE
 
     return answer
-
 
 # =========================================================
 # PRINT RESULTS
